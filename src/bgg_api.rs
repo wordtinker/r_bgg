@@ -31,7 +31,7 @@ impl API {
 
         let mut games = Vec::new();
         for i in 1..=num_pages {
-            // TODO: remove side effect TAP?
+            // TODO: remove side effect TAP? Iterator ?
             println!("Downloading page {} of {}", i, num_pages);
             let url = format!("https://boardgamegeek.com/browse/boardgame/page/{}", i);
             let resp = reqwest::get(&url)

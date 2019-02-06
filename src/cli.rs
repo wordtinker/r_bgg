@@ -42,5 +42,9 @@ pub enum Cli {
     },
     #[structopt(name = "run")]
     /// Runs a routine using config file.
-    Run
+    Run {
+        #[structopt(short = "r")]
+        /// if set, review, no redownloading will be done
+        review: bool
+    }
 }

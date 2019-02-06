@@ -15,7 +15,7 @@ fn main() -> Result<(), ExitFailure> {
         Cli::Get { depth } => get_top(depth)?,
         Cli::Top { depth, verbose } => show_slice(1, depth, verbose)?,
         Cli::Slice { from, to , verbose } => show_slice(from, to, verbose)?,
-        Cli::Run => run_routine()?
+        Cli::Run { review } => run_routine(review)?
     }
     Ok(())
 }
@@ -39,12 +39,14 @@ fn show_slice(from: usize, to: usize, verbose: bool) -> Result<(), Error> {
     Ok(())
 }
 
-// TODO: -r[eview] w/o geting top
-fn run_routine() -> Result<(), Error> {
+fn run_routine(review: bool) -> Result<(), Error> {
     // 1. get config params
     let config = core::config()?;
-    // 1. download top
-    get_top(config.depth)?;
+
+    if !review {
+        // 1. download top
+        get_top(config.depth)?;
+    }
 
     loop {
         // 2. get top 5 new games from file
