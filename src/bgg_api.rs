@@ -5,6 +5,47 @@ use select::predicate::{Name, Class};
 use failure::{ResultExt, Error, bail};
 use serde_derive::{Serialize, Deserialize};
 
+struct TopIterator {
+    delay: u64,
+    num_pages: usize,
+    count: usize
+}
+
+impl TopIterator {
+    fn new(delay: u64, depth: usize) -> TopIterator {
+        let page_size = 100.0;
+        let num_pages = (depth as f32 / page_size).ceil() as usize;
+        TopIterator {delay, num_pages, count: 0 }
+    }
+
+    fn get_games_from(n: usize) -> Result<Vec<Game>, Error> {
+        let url = format!("https://boardgamegeek.com/browse/boardgame/page/{}", n);
+        let resp = reqwest::get(&url)
+            .with_context(|_| format!("could not download page `{}`", url))?;
+        let doc = Document::from_read(resp)?;
+        let games_on_page = API::filter_games(doc)?;
+        Ok(games_on_page)
+    }
+}
+
+impl Iterator for TopIterator {
+    type Item = Result<(Vec<Game>, usize, usize), Error>;
+
+    fn next(&mut self) -> Option<Self::Item> {
+        self.count += 1;
+        if self.count > self.num_pages {
+            return None;
+        }
+        // wait before asking for result again
+        thread::sleep(time::Duration::from_millis(self.delay));
+        // get games
+        match TopIterator::get_games_from(self.count) {
+            Ok(games) => Some(Ok((games, self.count, self.num_pages))),
+            Err(e) => Some(Err(e))
+        }
+    }
+}
+
 pub struct Config {
     /// delay between rrquests in milliseconds
     delay: u64
@@ -25,26 +66,8 @@ impl API {
         API { config }
     }
 
-    pub fn get_top(&self, depth: usize) -> Result<Vec<Game>, Error> {
-        let page_size = 100.0;
-        let num_pages = (depth as f32 / page_size).ceil() as usize;
-
-        let mut games = Vec::new();
-        for i in 1..=num_pages {
-            // TODO: remove side effect TAP? Iterator ?
-            println!("Downloading page {} of {}", i, num_pages);
-            let url = format!("https://boardgamegeek.com/browse/boardgame/page/{}", i);
-            let resp = reqwest::get(&url)
-                .with_context(|_| format!("could not download page `{}`", url))?;
-
-            let doc = Document::from_read(resp)?;
-            let mut games_on_page = API::filter_games(doc)?;
-            games.append(&mut games_on_page);
-
-            // wait before asking for result again
-            thread::sleep(time::Duration::from_millis(self.config.delay));
-        }
-        Ok(games)
+    pub fn get_top(&self, depth: usize) -> impl Iterator<Item=Result<(Vec<Game>, usize, usize), Error>> {
+        TopIterator::new(self.config.delay, depth)
     }
 
     fn filter_games(doc: Document) -> Result<Vec<Game>, Error> {

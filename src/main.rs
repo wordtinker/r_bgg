@@ -96,7 +96,7 @@ fn read_input() -> Result<String, Error> {
 }
 
 fn open_browser(url: &str) -> Result<(), Error> {
-    // NOTE: win only
+    // NOTE: win only solution
     Command::new("cmd.exe")
         .arg("/C").arg("start")
         .arg("").arg(url)

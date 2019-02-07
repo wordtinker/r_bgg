@@ -23,7 +23,16 @@ pub fn create_project(name: &str) -> Result<(), Error> {
 pub fn get_top(depth: usize) -> Result<(), Error> {
     let config = bgg_api::Config::new(1000);
     let api = bgg_api::API::new(config);
-    let game_list = api.get_top(depth)?;
+    // Collect games
+    let mut game_list = Vec::new();
+    for variable in api.get_top(depth) {
+        // Error will be elevated and next() will be never called again
+        let (mut games_on_page, i, num_pages) = variable?;
+        // TODO: remove side effect Progress.report()
+        println!("Downloading page {} of {}", i, num_pages);
+        game_list.append(&mut games_on_page);
+    }
+
     let game_list = &game_list[..depth]; // crop to real depth
     let serialized = to_string_pretty(game_list)?;
     fs::write(TOP_FILE_NAME, serialized)?;
