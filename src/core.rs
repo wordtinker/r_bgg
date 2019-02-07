@@ -1,6 +1,5 @@
 use crate::bgg_api;
 use crate::bgg_api::Game;
-use crate::progress::Progress;
 use failure::{Error, ResultExt, ensure};
 use std::path::Path;
 use std::fs;
@@ -21,7 +20,7 @@ pub fn create_project(name: &str) -> Result<(), Error> {
     Ok(())
 }
 
-pub fn get_top(depth: usize, progress: Progress<(usize, usize)>) -> Result<(), Error> {
+pub fn get_top(depth: usize, progress: impl Fn(usize, usize) -> ()) -> Result<(), Error> {
     let config = bgg_api::Config::new(1000);
     let api = bgg_api::API::new(config);
     // Collect games
@@ -29,7 +28,7 @@ pub fn get_top(depth: usize, progress: Progress<(usize, usize)>) -> Result<(), E
     for variable in api.get_top(depth) {
         // Error will be elevated and next() will be never called again
         let (mut games_on_page, i, num_pages) = variable?;
-        progress.report((i, num_pages));
+        progress(i, num_pages);
         game_list.append(&mut games_on_page);
     }
 

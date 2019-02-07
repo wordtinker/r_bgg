@@ -1,6 +1,6 @@
 [package]
 name = "bgg"
-version = "0.1.3"
+version = "0.2.0"
 authors = ["wordtinker"]
 edition = "2018"
 
@@ -14,3 +14,4 @@ serde = "1.0.86"
 serde_derive = "1.0.86"
 serde_json = "1.0.38"
 prettytable-rs = "0.8.0"
+indicatif = "0.11.0"

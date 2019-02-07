@@ -1,15 +1,14 @@
 mod cli;
 mod bgg_api;
 mod core;
-mod progress;
 
 use cli::Cli;
-use progress::Progress;
 use failure::{Error, ResultExt};
 use exitfailure::ExitFailure;
 use prettytable::{Table, row, cell};
 use std::io;
 use std::process::Command;
+use indicatif::ProgressBar;
 
 fn main() -> Result<(), ExitFailure> {
     let cli = cli::from_args();
@@ -31,8 +30,12 @@ fn create_project(name: &str) -> Result<(), Error> {
 
 fn get_top(depth: usize) -> Result<(), Error> {
     println!("Starting download.");
-    core::get_top(depth,
-         Progress::new(|(i,n)| println!("Downloading page {} of {}", i, n)))?;
+    let bar = ProgressBar::new(1000);
+    core::get_top(depth, |i,n| {
+        bar.set_length(n as u64);
+        bar.set_position(i as u64);
+    })?;
+    bar.finish();
     println!("Finished download.");
     Ok(())
 }
