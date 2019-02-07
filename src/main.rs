@@ -1,7 +1,10 @@
 mod cli;
-use cli::Cli;
 mod bgg_api;
 mod core;
+mod progress;
+
+use cli::Cli;
+use progress::Progress;
 use failure::{Error, ResultExt};
 use exitfailure::ExitFailure;
 use prettytable::{Table, row, cell};
@@ -28,7 +31,8 @@ fn create_project(name: &str) -> Result<(), Error> {
 
 fn get_top(depth: usize) -> Result<(), Error> {
     println!("Starting download.");
-    core::get_top(depth)?;
+    core::get_top(depth,
+         Progress::new(|(i,n)| println!("Downloading page {} of {}", i, n)))?;
     println!("Finished download.");
     Ok(())
 }
