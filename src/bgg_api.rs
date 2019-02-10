@@ -1,9 +1,11 @@
-use std::{thread, time};
+use std::{thread, time, cmp};
 use reqwest;
 use select::document::Document;
 use select::predicate::{Name, Class};
 use failure::{ResultExt, Error, bail};
 use serde_derive::{Serialize, Deserialize};
+
+const PAGE_SIZE: usize = 100;
 
 struct TopIterator {
     delay: u64,
@@ -13,18 +15,8 @@ struct TopIterator {
 
 impl TopIterator {
     fn new(delay: u64, depth: usize) -> TopIterator {
-        let page_size = 100.0;
-        let num_pages = (depth as f32 / page_size).ceil() as usize;
+        let num_pages = (depth as f64 / PAGE_SIZE as f64).ceil() as usize;
         TopIterator {delay, num_pages, count: 0 }
-    }
-
-    fn get_games_from(n: usize) -> Result<Vec<Game>, Error> {
-        let url = format!("https://boardgamegeek.com/browse/boardgame/page/{}", n);
-        let resp = reqwest::get(&url)
-            .with_context(|_| format!("could not download page `{}`", url))?;
-        let doc = Document::from_read(resp)?;
-        let games_on_page = API::filter_games(doc)?;
-        Ok(games_on_page)
     }
 }
 
@@ -39,7 +31,7 @@ impl Iterator for TopIterator {
         // wait before asking for result again
         thread::sleep(time::Duration::from_millis(self.delay));
         // get games
-        match TopIterator::get_games_from(self.count) {
+        match API::get_games_from(self.count) {
             Ok(games) => Some(Ok((games, self.count, self.num_pages))),
             Err(e) => Some(Err(e))
         }
@@ -70,19 +62,29 @@ impl API {
         TopIterator::new(self.config.delay, depth)
     }
 
-    pub fn get_next(&self, depth: usize, offset: usize) -> Result<Vec<Game>, Error> {
-        // TODO: Stub
-        let v: Vec<Game> = vec![
-        Game {
-            id: 1,
-            name: String::from("test")
-        },
-        Game {
-            id: 2,
-            name: String::from("stub")
-        },
-        ];
-        Ok(v)
+    pub fn get_next(depth: usize, offset: usize) -> Result<Vec<Game>, Error> {
+        let pages = (depth as f64 / PAGE_SIZE as f64).ceil() as usize;
+        let last_page = ((depth + offset) as f64 / PAGE_SIZE as f64).ceil() as usize;
+        let start_page = cmp::min(pages + 1, last_page);
+
+        let mut games: Vec<Game> = Vec::new();
+        for n in start_page..=last_page {
+            games.append(&mut API::get_games_from(n)?);
+        }
+        let skip = if (start_page - 1) * PAGE_SIZE > depth {
+            0
+        } else {
+            depth - (start_page - 1) * PAGE_SIZE
+        };
+        Ok(games.into_iter().skip(skip).take(offset).collect())
+    }
+
+    fn get_games_from(n: usize) -> Result<Vec<Game>, Error> {
+        let url = format!("https://boardgamegeek.com/browse/boardgame/page/{}", n);
+        let resp = reqwest::get(&url)
+            .with_context(|_| format!("could not download page `{}`", url))?;
+        let doc = Document::from_read(resp)?;
+        API::filter_games(doc)
     }
 
     fn filter_games(doc: Document) -> Result<Vec<Game>, Error> {

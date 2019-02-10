@@ -24,10 +24,8 @@ pub fn get_future(depth: usize, prospect: usize) -> Result<(usize, usize), Error
     let ignored = fs::read_to_string(IGNORE_FILE_NAME)
         .with_context(|_| format!("Can't open: {}", IGNORE_FILE_NAME))?;
     let ignored: Vec<Game> = from_str(&ignored)?;
-    let config = bgg_api::Config::new(1000);
-    let api = bgg_api::API::new(config);
     // Collect games from the future
-    let game_list = api.get_next(depth, prospect)?;
+    let game_list = bgg_api::API::get_next(depth, prospect)?;
     let game_list = mark_games(game_list, ignored);
     let seen = game_list.iter().filter(|gc| gc.ignored == true).count();
     Ok((seen, game_list.len() - seen))
