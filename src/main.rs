@@ -3,7 +3,7 @@ mod bgg_api;
 mod core;
 
 use cli::Cli;
-use failure::{Error, ResultExt};
+use failure::{Error, ResultExt, ensure};
 use exitfailure::ExitFailure;
 use prettytable::{Table, row, cell};
 use std::io;
@@ -17,7 +17,8 @@ fn main() -> Result<(), ExitFailure> {
         Cli::Get { depth } => get_top(depth)?,
         Cli::Top { depth, verbose } => show_slice(1, depth, verbose)?,
         Cli::Slice { from, to , verbose } => show_slice(from, to, verbose)?,
-        Cli::Run { review } => run_routine(review)?
+        Cli::Run { review } => run_routine(review)?,
+        Cli::Prospect { } => see_future()?
     }
     Ok(())
 }
@@ -46,8 +47,18 @@ fn show_slice(from: usize, to: usize, verbose: bool) -> Result<(), Error> {
     Ok(())
 }
 
+fn see_future() -> Result<(), Error> {
+    // 1. get config params
+    let config = core::config()?;
+    let (seen, new) = core::get_future(config.depth, config.prospect)?;
+    ensure!(config.prospect > 0, "Can't see the future.");
+    println!("Found {} seen games and {} new games in the future.", seen, new);
+    Ok(())
+}
+
 fn run_routine(review: bool) -> Result<(), Error> {
     // 1. get config params
+    // TODO: ensure!
     let config = core::config()?;
 
     if !review {

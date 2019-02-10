@@ -70,6 +70,21 @@ impl API {
         TopIterator::new(self.config.delay, depth)
     }
 
+    pub fn get_next(&self, depth: usize, offset: usize) -> Result<Vec<Game>, Error> {
+        // TODO: Stub
+        let v: Vec<Game> = vec![
+        Game {
+            id: 1,
+            name: String::from("test")
+        },
+        Game {
+            id: 2,
+            name: String::from("stub")
+        },
+        ];
+        Ok(v)
+    }
+
     fn filter_games(doc: Document) -> Result<Vec<Game>, Error> {
         let links = doc
             .find(Class("collection_table"))

@@ -46,5 +46,8 @@ pub enum Cli {
         #[structopt(short = "r")]
         /// if set, review, no redownloading will be done
         review: bool
-    }
+    },
+    #[structopt(name = "prospect")]
+    // Peeks next bunch of games using config file.
+    Prospect { }
 }
