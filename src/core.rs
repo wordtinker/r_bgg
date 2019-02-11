@@ -21,6 +21,8 @@ pub fn create_project(name: &str) -> Result<(), Error> {
 }
 
 pub fn get_future(depth: usize, prospect: usize) -> Result<(usize, usize), Error> {
+    ensure!(prospect > 0 && depth > 0, "Can't see the future.");
+
     let ignored = fs::read_to_string(IGNORE_FILE_NAME)
         .with_context(|_| format!("Can't open: {}", IGNORE_FILE_NAME))?;
     let ignored: Vec<Game> = from_str(&ignored)?;
@@ -32,6 +34,8 @@ pub fn get_future(depth: usize, prospect: usize) -> Result<(usize, usize), Error
 }
 
 pub fn get_top(depth: usize, progress: impl Fn(usize, usize) -> ()) -> Result<(), Error> {
+    ensure!(depth > 0, "Can't get top.");
+
     let config = bgg_api::Config::new(1000);
     let api = bgg_api::API::new(config);
     // Collect games

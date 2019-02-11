@@ -3,7 +3,7 @@ mod bgg_api;
 mod core;
 
 use cli::Cli;
-use failure::{Error, ResultExt, ensure};
+use failure::{Error, ResultExt};
 use exitfailure::ExitFailure;
 use prettytable::{Table, row, cell};
 use std::io;
@@ -51,14 +51,12 @@ fn see_future() -> Result<(), Error> {
     // 1. get config params
     let config = core::config()?;
     let (seen, new) = core::get_future(config.depth, config.prospect)?;
-    ensure!(config.prospect > 0, "Can't see the future.");
     println!("Found {} seen games and {} new games in the future.", seen, new);
     Ok(())
 }
 
 fn run_routine(review: bool) -> Result<(), Error> {
     // 1. get config params
-    // TODO: ensure!
     let config = core::config()?;
 
     if !review {
