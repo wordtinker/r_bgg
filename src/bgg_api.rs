@@ -96,11 +96,13 @@ impl API {
 
         let mut games = Vec::new();
         for link in links {
-            let id = match link.attr("href") {
-                Some(href) => API::href_to_id(href)?,
+            match link.attr("href") {
+                Some(href) => {
+                    let id = API::href_to_id(href)?;
+                    games.push(Game::new(id, link.text(), href.to_string()));
+                },
                 _ => bail!("Could not find game id.")
             };
-            games.push(Game::new(id, link.text()));
         }
         Ok(games)
     }
@@ -118,14 +120,16 @@ impl API {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Game {
     pub id: usize,
-    pub name: String
+    pub name: String,
+    url: String
 }
 
 impl Game {
-    fn new(id: usize, name: String) -> Game {
-        Game { id, name }
+    fn new(id: usize, name: String, url: String) -> Game {
+        Game { id, name, url }
     }
+
     pub fn url(&self) -> String {
-        format!("https://boardgamegeek.com/boardgame/{}", self.id)
+        format!("https://boardgamegeek.com{}", self.url)
     }
 }
