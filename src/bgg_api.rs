@@ -102,9 +102,10 @@ impl API {
                     let year = match link.parent() { 
                         Some(parent) => match parent.find(Name("span")).next() {
                             Some(span) => span.text(),
-                            _ => bail!("Could not find game year.")
+                            // assume something very old, at least 0 C.E.
+                            _ => String::from("(0)")
                         }
-                        _ => bail!("Could not find game year.")
+                        _ => bail!("Could not find game year: {}", href)
                     };
                     let year = &year[1..year.len() - 1];
                     let year = year.parse::<isize>()
