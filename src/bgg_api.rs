@@ -96,11 +96,23 @@ impl API {
 
         let mut games = Vec::new();
         for link in links {
-            let id = match link.attr("href") {
-                Some(href) => API::href_to_id(href)?,
+            match link.attr("href") {
+                Some(href) => {
+                    let id = API::href_to_id(href)?;
+                    let year = match link.parent() { 
+                        Some(parent) => match parent.find(Name("span")).next() {
+                            Some(span) => span.text(),
+                            _ => bail!("Could not find game year.")
+                        }
+                        _ => bail!("Could not find game year.")
+                    };
+                    let year = &year[1..year.len() - 1];
+                    let year = year.parse::<isize>()
+                        .with_context(|_| format!("Can't parse {}", year))?;
+                    games.push(Game::new(id, link.text(), year));
+                },
                 _ => bail!("Could not find game id.")
             };
-            games.push(Game::new(id, link.text()));
         }
         Ok(games)
     }
@@ -118,12 +130,13 @@ impl API {
 #[derive(Serialize, Deserialize, Debug, PartialEq)]
 pub struct Game {
     pub id: usize,
-    pub name: String
+    pub name: String,
+    pub year: isize
 }
 
 impl Game {
-    fn new(id: usize, name: String) -> Game {
-        Game { id, name }
+    fn new(id: usize, name: String, year: isize) -> Game {
+        Game { id, name, year }
     }
     pub fn url(&self) -> String {
         format!("https://boardgamegeek.com/boardgame/{}", self.id)
