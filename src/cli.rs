@@ -1,9 +1,5 @@
 use structopt::StructOpt;
 
-pub fn from_args() -> Cli {
-    Cli::from_args()
-}
-
 #[derive(Debug, StructOpt)]
 /// Works with bgg top list.
 pub enum Cli {

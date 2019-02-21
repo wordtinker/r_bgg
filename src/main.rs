@@ -3,6 +3,7 @@ mod bgg_api;
 mod core;
 
 use cli::Cli;
+use structopt::StructOpt;
 use failure::{Error, ResultExt};
 use exitfailure::ExitFailure;
 use prettytable::{Table, row, cell};
@@ -11,7 +12,7 @@ use std::process::Command;
 use indicatif::ProgressBar;
 
 fn main() -> Result<(), ExitFailure> {
-    let cli = cli::from_args();
+    let cli = Cli::from_args();
     match cli {
         Cli::Create { name } => create_project(&name)?,
         Cli::Get { depth } => get_top(depth)?,
