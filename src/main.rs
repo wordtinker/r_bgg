@@ -1,15 +1,14 @@
-mod cli;
 mod bgg_api;
+mod cli;
 mod core;
-
 use cli::Cli;
-use structopt::StructOpt;
-use failure::{Error, ResultExt};
 use exitfailure::ExitFailure;
-use prettytable::{Table, row, cell};
+use failure::{Error, ResultExt};
+use indicatif::ProgressBar;
+use prettytable::{cell, row, Table};
 use std::io;
 use std::process::Command;
-use indicatif::ProgressBar;
+use structopt::StructOpt;
 
 fn main() -> Result<(), ExitFailure> {
     let cli = Cli::from_args();
@@ -17,9 +16,9 @@ fn main() -> Result<(), ExitFailure> {
         Cli::Create { name } => create_project(&name)?,
         Cli::Get { depth } => get_top(depth)?,
         Cli::Top { depth, verbose } => show_slice(1, depth, verbose)?,
-        Cli::Slice { from, to , verbose } => show_slice(from, to, verbose)?,
+        Cli::Slice { from, to, verbose } => show_slice(from, to, verbose)?,
         Cli::Run { review } => run_routine(review)?,
-        Cli::Prospect { } => see_future()?
+        Cli::Prospect {} => see_future()?,
     }
     Ok(())
 }
@@ -33,7 +32,7 @@ fn create_project(name: &str) -> Result<(), Error> {
 fn get_top(depth: usize) -> Result<(), Error> {
     println!("Starting download.");
     let bar = ProgressBar::new(1000);
-    core::get_top(depth, |i,n| {
+    core::get_top(depth, |i, n| {
         bar.set_length(n as u64);
         bar.set_position(i as u64);
     })?;
@@ -52,7 +51,10 @@ fn see_future() -> Result<(), Error> {
     // 1. get config params
     let config = core::config()?;
     let (seen, new) = core::get_future(config.depth, config.prospect)?;
-    println!("Found {} seen games and {} new games in the future.", seen, new);
+    println!(
+        "Found {} seen games and {} new games in the future.",
+        seen, new
+    );
     Ok(())
 }
 
@@ -68,13 +70,17 @@ fn run_routine(review: bool) -> Result<(), Error> {
     loop {
         // 2. get top 5 new games from file
         let slice = core::get_slice(1, config.batch_size, false)?;
-        if slice.len() == 0 { break; }
+        if slice.len() == 0 {
+            break;
+        }
         println!("Found new games");
         print_table(&slice);
         println!("Do you want to open links: y/n?");
 
         let input = read_input()?;
-        if input != String::from("y") { break; }
+        if input != String::from("y") {
+            break;
+        }
 
         for (_, container) in slice {
             // 3. Open link in a browser
@@ -115,9 +121,11 @@ fn read_input() -> Result<String, Error> {
 fn open_browser(url: &str) -> Result<(), Error> {
     // NOTE: win only solution
     Command::new("cmd.exe")
-        .arg("/C").arg("start")
-        .arg("").arg(url)
+        .arg("/C")
+        .arg("start")
+        .arg("")
+        .arg(url)
         .spawn()
         .with_context(|_| "failed to launch browser")?;
-        Ok(())
+    Ok(())
 }

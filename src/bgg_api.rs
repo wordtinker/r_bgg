@@ -1,22 +1,26 @@
-use std::{thread, time, cmp};
+use failure::{bail, Error, ResultExt};
 use reqwest;
 use select::document::Document;
-use select::predicate::{Name, Class};
-use failure::{ResultExt, Error, bail};
-use serde_derive::{Serialize, Deserialize};
+use select::predicate::{Class, Name};
+use serde_derive::{Deserialize, Serialize};
+use std::{cmp, thread, time};
 
 const PAGE_SIZE: usize = 100;
 
 struct TopIterator {
     delay: u64,
     num_pages: usize,
-    count: usize
+    count: usize,
 }
 
 impl TopIterator {
     fn new(delay: u64, depth: usize) -> TopIterator {
         let num_pages = (depth as f64 / PAGE_SIZE as f64).ceil() as usize;
-        TopIterator {delay, num_pages, count: 0 }
+        TopIterator {
+            delay,
+            num_pages,
+            count: 0,
+        }
     }
 }
 
@@ -33,14 +37,14 @@ impl Iterator for TopIterator {
         // get games
         match API::get_games_from(self.count) {
             Ok(games) => Some(Ok((games, self.count, self.num_pages))),
-            Err(e) => Some(Err(e))
+            Err(e) => Some(Err(e)),
         }
     }
 }
 
 pub struct Config {
-    /// delay between rrquests in milliseconds
-    delay: u64
+    // delay between rrquests in milliseconds
+    delay: u64,
 }
 
 impl Config {
@@ -50,7 +54,7 @@ impl Config {
 }
 
 pub struct API {
-    config: Config
+    config: Config,
 }
 
 impl API {
@@ -58,7 +62,10 @@ impl API {
         API { config }
     }
 
-    pub fn get_top(&self, depth: usize) -> impl Iterator<Item=Result<(Vec<Game>, usize, usize), Error>> {
+    pub fn get_top(
+        &self,
+        depth: usize,
+    ) -> impl Iterator<Item = Result<(Vec<Game>, usize, usize), Error>> {
         TopIterator::new(self.config.delay, depth)
     }
 
@@ -81,8 +88,8 @@ impl API {
 
     fn get_games_from(n: usize) -> Result<Vec<Game>, Error> {
         let url = format!("https://boardgamegeek.com/browse/boardgame/page/{}", n);
-        let resp = reqwest::get(&url)
-            .with_context(|_| format!("could not download page `{}`", url))?;
+        let resp =
+            reqwest::get(&url).with_context(|_| format!("could not download page `{}`", url))?;
         let doc = Document::from_read(resp)?;
         API::filter_games(doc)
     }
@@ -99,20 +106,21 @@ impl API {
             match link.attr("href") {
                 Some(href) => {
                     let id = API::href_to_id(href)?;
-                    let year = match link.parent() { 
+                    let year = match link.parent() {
                         Some(parent) => match parent.find(Name("span")).next() {
                             Some(span) => span.text(),
                             // assume something very old, at least 0 C.E.
-                            _ => String::from("(0)")
-                        }
-                        _ => bail!("Could not find game year: {}", href)
+                            _ => String::from("(0)"),
+                        },
+                        _ => bail!("Could not find game year: {}", href),
                     };
                     let year = &year[1..year.len() - 1];
-                    let year = year.parse::<isize>()
+                    let year = year
+                        .parse::<isize>()
                         .with_context(|_| format!("Can't parse {}", year))?;
                     games.push(Game::new(id, link.text(), year));
-                },
-                _ => bail!("Could not find game id.")
+                }
+                _ => bail!("Could not find game id."),
             };
         }
         Ok(games)
@@ -122,7 +130,7 @@ impl API {
         let parts: Vec<&str> = href.rsplit('/').take(2).collect();
         let id = match parts.get(1) {
             Some(x) => x.parse::<usize>()?,
-            None => bail!("Can't parse id of the game: {}", href)
+            None => bail!("Can't parse id of the game: {}", href),
         };
         Ok(id)
     }
@@ -132,7 +140,7 @@ impl API {
 pub struct Game {
     pub id: usize,
     pub name: String,
-    pub year: isize
+    pub year: isize,
 }
 
 impl Game {

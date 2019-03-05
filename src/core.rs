@@ -1,10 +1,10 @@
 use crate::bgg_api;
 use crate::bgg_api::Game;
-use failure::{Error, ResultExt, ensure};
-use std::path::Path;
-use std::fs;
+use failure::{ensure, Error, ResultExt};
+use serde_derive::{Deserialize, Serialize};
 use serde_json::{from_str, to_string_pretty};
-use serde_derive::{Serialize, Deserialize};
+use std::fs;
+use std::path::Path;
 
 const TOP_FILE_NAME: &str = "top.json";
 const IGNORE_FILE_NAME: &str = "ignore.json";
@@ -73,7 +73,7 @@ pub fn get_slice(from: usize, to: usize, verbose: bool) -> Result<Vec<(usize, Co
     Ok(slice)
 }
 
-fn mark_games(games :Vec<Game>, ignored: Vec<Game>) -> Vec<Container> {
+fn mark_games(games: Vec<Game>, ignored: Vec<Game>) -> Vec<Container> {
     let mut containers = Vec::new();
     for game in games {
         let ign = ignored.contains(&game);
@@ -103,7 +103,7 @@ pub fn ignore(game: Game) -> Result<(), Error> {
 #[derive(Debug)]
 pub struct Container {
     pub game: Game,
-    pub ignored: bool
+    pub ignored: bool,
 }
 
 impl Container {
@@ -116,11 +116,15 @@ impl Container {
 pub struct Config {
     pub depth: usize,
     pub batch_size: usize,
-    pub prospect: usize
+    pub prospect: usize,
 }
 
 impl Config {
     fn new(depth: usize, batch_size: usize, prospect: usize) -> Config {
-        Config {depth, batch_size, prospect}
+        Config {
+            depth,
+            batch_size,
+            prospect,
+        }
     }
 }

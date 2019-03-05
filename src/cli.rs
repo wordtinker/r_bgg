@@ -7,15 +7,15 @@ pub enum Cli {
     /// Creates folder and structure files for work.
     Create {
         /// Name of the project folder.
-        name: String
+        name: String,
     },
     #[structopt(name = "get")]
     /// Get n positions from top of bgg.
     Get {
         /// depth of search.
-        depth: usize
+        depth: usize,
     },
-    #[structopt(name ="top")]
+    #[structopt(name = "top")]
     /// Show top n games.
     Top {
         /// size of top list.
@@ -23,7 +23,7 @@ pub enum Cli {
         depth: usize,
         #[structopt(short = "v")]
         /// if set, ignored positions will be shown.
-        verbose: bool
+        verbose: bool,
     },
     #[structopt(name = "slice")]
     /// Show games from position i to j, inclusive.
@@ -34,16 +34,16 @@ pub enum Cli {
         to: usize,
         #[structopt(short = "v")]
         /// if set, ignored positions will be shown.
-        verbose: bool
+        verbose: bool,
     },
     #[structopt(name = "run")]
     /// Runs a routine using config file.
     Run {
         #[structopt(short = "r")]
         /// if set, review, no redownloading will be done
-        review: bool
+        review: bool,
     },
     #[structopt(name = "prospect")]
     // Peeks next bunch of games using config file.
-    Prospect { }
+    Prospect {},
 }
