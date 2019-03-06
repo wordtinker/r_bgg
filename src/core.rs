@@ -29,7 +29,7 @@ pub fn get_future(depth: usize, prospect: usize) -> Result<(usize, usize), Error
     // Collect games from the future
     let game_list = bgg_api::API::get_next(depth, prospect)?;
     let game_list = mark_games(game_list, ignored);
-    let seen = game_list.iter().filter(|gc| gc.ignored == true).count();
+    let seen = game_list.iter().filter(|gc| gc.ignored).count();
     Ok((seen, game_list.len() - seen))
 }
 
@@ -66,7 +66,7 @@ pub fn get_slice(from: usize, to: usize, verbose: bool) -> Result<Vec<(usize, Co
     let slice: Vec<(usize, Container)> = mark_games(games, ignored)
         .into_iter()
         .enumerate()
-        .filter(|(_, gc)| verbose || gc.ignored == false)
+        .filter(|(_, gc)| verbose || !gc.ignored)
         .skip(from - 1)
         .take(to - from + 1)
         .collect();

@@ -1,6 +1,6 @@
 [package]
 name = "bgg"
-version = "0.4.3"
+version = "0.4.4"
 authors = ["wordtinker"]
 edition = "2018"
 

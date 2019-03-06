@@ -70,7 +70,7 @@ fn run_routine(review: bool) -> Result<(), Error> {
     loop {
         // 2. get top 5 new games from file
         let slice = core::get_slice(1, config.batch_size, false)?;
-        if slice.len() == 0 {
+        if slice.is_empty() {
             break;
         }
         println!("Found new games");
@@ -78,7 +78,7 @@ fn run_routine(review: bool) -> Result<(), Error> {
         println!("Do you want to open links: y/n?");
 
         let input = read_input()?;
-        if input != String::from("y") {
+        if input != "y" {
             break;
         }
 
@@ -93,7 +93,7 @@ fn run_routine(review: bool) -> Result<(), Error> {
     Ok(())
 }
 
-fn print_table(top: &Vec<(usize, core::Container)>) {
+fn print_table(top: &[(usize, core::Container)]) {
     // Create the table
     let mut table = Table::new();
 
