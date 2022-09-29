@@ -1,8 +1,8 @@
 [package]
 name = "bgg"
-version = "0.5.0"
+version = "0.5.1"
 authors = ["wordtinker"]
-edition = "2018"
+edition = "2021"
 
 [dependencies]
 structopt = "0.3.26"
