@@ -1,5 +1,4 @@
 use failure::{bail, Error, ResultExt};
-use reqwest;
 use select::document::Document;
 use select::predicate::{Class, Name};
 use serde_derive::{Deserialize, Serialize};
@@ -87,7 +86,8 @@ impl API {
     }
 
     fn get_games_from(n: usize) -> Result<Vec<Game>, Error> {
-        let url = format!("https://boardgamegeek.com/browse/boardgame/page/{}", n);
+        let n_position: usize = (n - 1) * PAGE_SIZE + 1;
+        let url = format!("https://boardgamegeek.com/browse/boardgame?sort=rank&rankobjecttype=subtype&rankobjectid=1&rank={}#{}", n_position, n_position);
         let resp =
             reqwest::get(&url).with_context(|_| format!("could not download page `{}`", url))?;
         let doc = Document::from_read(resp)?;

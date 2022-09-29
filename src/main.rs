@@ -5,7 +5,7 @@ use cli::Cli;
 use exitfailure::ExitFailure;
 use failure::{Error, ResultExt};
 use indicatif::ProgressBar;
-use prettytable::{cell, row, Table};
+use prettytable::{row, Table};
 use std::io;
 use std::process::Command;
 use structopt::StructOpt;
@@ -24,7 +24,7 @@ fn main() -> Result<(), ExitFailure> {
 }
 
 fn create_project(name: &str) -> Result<(), Error> {
-    core::create_project(&name)?;
+    core::create_project(name)?;
     println!("Successfully created {} project", name);
     Ok(())
 }
